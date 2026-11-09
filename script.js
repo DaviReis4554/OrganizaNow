@@ -3,6 +3,8 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/13.2.0/firebas
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
 
 // Configuração do Firebase
+import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js";
+
 const firebaseConfig = {
     apiKey: "AIzaSyC_SoKuf074CM_rSlps7mkKNSQprdohGtA",
     authDomain: "organiza-now.firebaseapp.com",
@@ -16,6 +18,61 @@ const firebaseConfig = {
 // Inicializa Firebase e Auth
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const db = getFirestore(app);
+
+// Sincronização em nuvem (Firestore)
+let unsubscribeData = null;
+
+function emptyState() {
+    return { tasks: [], studies: [], exams: [], collegeDays: [], events: [], bills: [], cards: [], purchases: [] };
+}
+
+function normalizeState(s) {
+    return { ...emptyState(), ...(s || {}) };
+}
+
+function cacheKey() {
+    return `organizananow_data_${currentUser.uid}`;
+}
+
+function pushToCloud() {
+    if (!currentUser) return;
+    // O estado vai como texto JSON: evita erros do Firestore com valores undefined/arrays aninhados
+    setDoc(doc(db, 'users', currentUser.uid), {
+        data: JSON.stringify(state),
+        updatedAt: Date.now()
+    }).catch(err => console.error('Erro ao salvar na nuvem:', err));
+}
+
+function startCloudSync() {
+    stopCloudSync();
+    const ref = doc(db, 'users', currentUser.uid);
+    unsubscribeData = onSnapshot(ref, (snap) => {
+        // Ignora o "eco" das minhas próprias escritas ainda pendentes
+        if (snap.metadata.hasPendingWrites) return;
+
+        if (snap.exists() && snap.data().data) {
+            const remote = normalizeState(JSON.parse(snap.data().data));
+            if (JSON.stringify(remote) !== JSON.stringify(state)) {
+                state = remote;
+                localStorage.setItem(cacheKey(), JSON.stringify(state));
+                renderAll();
+            }
+        } else if (!snap.metadata.fromCache) {
+            // Primeiro acesso com a nuvem vazia: sobe o que já existe neste aparelho
+            pushToCloud();
+        }
+    }, (err) => {
+        console.error('Erro ao sincronizar com a nuvem:', err);
+    });
+}
+
+function stopCloudSync() {
+    if (unsubscribeData) {
+        unsubscribeData();
+        unsubscribeData = null;
+    }
+}
 
 let currentUser = null;
 let state = { tasks: [], studies: [], exams: [], collegeDays: [], events: [], bills: [], cards: [], purchases: [] };
@@ -28,6 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (user) {
             loadUserSession(user);
         } else {
+            stopCloudSync();
             currentUser = null;
             document.getElementById('app-screen').style.display = 'none';
             document.getElementById('auth-screen').style.display = 'flex';
@@ -57,25 +115,16 @@ function loadUserSession(firebaseUser) {
         name: firebaseUser.displayName || firebaseUser.email.split('@')[0]
     };
 
-    const savedData = localStorage.getItem(`organizananow_data_${firebaseUser.uid}`);
-    if (savedData) {
-        state = JSON.parse(savedData);
-        if (!state.cards) state.cards = [];
-        if (!state.purchases) state.purchases = [];
-        if (!state.bills) state.bills = [];
-        if (!state.studies) state.studies = [];
-        if (!state.exams) state.exams = [];
-        if (!state.collegeDays) state.collegeDays = [];
-        if (!state.events) state.events = [];
-    } else {
-        state = { tasks: [], studies: [], exams: [], collegeDays: [], events: [], bills: [], cards: [], purchases: [] };
-    }
+    // Mostra rápido o cache local deste aparelho; logo em seguida a nuvem assume
+    const savedData = localStorage.getItem(cacheKey());
+    state = savedData ? normalizeState(JSON.parse(savedData)) : emptyState();
 
     document.getElementById('auth-screen').style.display = 'none';
     document.getElementById('app-screen').style.display = 'flex';
     document.getElementById('welcome-user').textContent = `Olá, ${currentUser.name}! Vamos organizar o dia? 💜`;
 
     renderAll();
+    startCloudSync();
 }
 
 window.switchAuthTab = function(tab) {
@@ -167,6 +216,7 @@ function initAuthListeners() {
 // LOGOUT NO FIREBASE
 window.logout = async function() {
     try {
+        stopCloudSync();
         await signOut(auth);
         currentUser = null;
         document.getElementById('app-screen').style.display = 'none';
@@ -181,7 +231,8 @@ window.logout = async function() {
 
 function saveState() {
     if (!currentUser) return;
-    localStorage.setItem(`organizananow_data_${currentUser.uid}`, JSON.stringify(state));
+    localStorage.setItem(cacheKey(), JSON.stringify(state));
+    pushToCloud();
     updateDashboard();
 }
 
