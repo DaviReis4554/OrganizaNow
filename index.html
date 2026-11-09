@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OrganizaNow | Seu Painel de Organização</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <!-- ================= TELA DE LOGIN / CADASTRO ================= -->
+    <div id="auth-screen" class="auth-container">
+        <div class="auth-card">
+            <div class="logo-area center">
+                <i class="fa-solid fa-layer-group"></i>
+                <h2>Organiza<span>Now</span></h2>
+            </div>
+            
+            <div class="auth-tabs">
+                <button class="auth-tab-btn active" id="tab-login-btn" onclick="switchAuthTab('login')">Entrar</button>
+                <button class="auth-tab-btn" id="tab-register-btn" onclick="switchAuthTab('register')">Criar Conta</button>
+            </div>
+
+            <form id="login-form" class="auth-form">
+                <div class="input-group">
+                    <label><i class="fa-solid fa-envelope"></i> E-mail</label>
+                    <input type="email" id="login-email" placeholder="seu@email.com" required>
+                </div>
+                <div class="input-group">
+                    <label><i class="fa-solid fa-lock"></i> Senha</label>
+                    <input type="password" id="login-password" placeholder="Sua senha" required>
+                </div>
+                <button type="submit" class="btn-primary full-width">Entrar no Painel</button>
+            </form>
+
+            <form id="register-form" class="auth-form" style="display: none;">
+                <div class="input-group">
+                    <label><i class="fa-solid fa-user"></i> Nome Completo</label>
+                    <input type="text" id="register-name" placeholder="Como podemos te chamar?" required>
+                </div>
+                <div class="input-group">
+                    <label><i class="fa-solid fa-envelope"></i> E-mail</label>
+                    <input type="email" id="register-email" placeholder="seu@email.com" required>
+                </div>
+                <div class="input-group">
+                    <label><i class="fa-solid fa-lock"></i> Senha</label>
+                    <input type="password" id="register-password" placeholder="Crie uma senha forte" required>
+                </div>
+                <button type="submit" class="btn-primary full-width">Cadastrar e Entrar</button>
+            </form>
+            
+            <div id="auth-msg" class="auth-msg"></div>
+        </div>
+    </div>
+
+    <!-- ================= APLICATIVO PRINCIPAL ================= -->
+    <div id="app-screen" class="app-container" style="display: none;">
+        <aside class="sidebar">
+            <div class="logo-area">
+                <i class="fa-solid fa-layer-group"></i>
+                <h2>Organiza<span>Now</span></h2>
+            </div>
+            
+            <nav class="nav-menu">
+                <button class="nav-btn active" data-tab="dashboard">
+                    <i class="fa-solid fa-house"></i> Visão Geral
+                </button>
+                <button class="nav-btn" data-tab="tarefas">
+                    <i class="fa-solid fa-list-check"></i> Tarefas do Dia
+                </button>
+                <button class="nav-btn" data-tab="estudos">
+                    <i class="fa-solid fa-graduation-cap"></i> Estudos & Faculdade
+                </button>
+                <button class="nav-btn" data-tab="calendario">
+                    <i class="fa-solid fa-calendar-days"></i> Calendário
+                </button>
+                <button class="nav-btn" data-tab="financas">
+                    <i class="fa-solid fa-wallet"></i> Gastos Mensais
+                </button>
+                <button class="nav-btn" data-tab="cartoes">
+                    <i class="fa-solid fa-credit-card"></i> Cartões de Crédito
+                </button>
+                <button class="nav-btn" data-tab="gastos-isolados">
+                    <i class="fa-solid fa-cart-shopping"></i> Gastos Isolados
+                </button>
+            </nav>
+
+            <div class="sidebar-footer">
+                <button id="theme-toggle" class="theme-btn">
+                    <i class="fa-solid fa-moon"></i> <span>Modo Escuro</span>
+                </button>
+                <button id="logout-btn" class="logout-btn" onclick="logout()">
+                    <i class="fa-solid fa-right-from-bracket"></i> <span>Sair da Conta</span>
+                </button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <div class="welcome-text">
+                    <h1 id="welcome-user">Olá! Vamos organizar o dia? 💜</h1>
+                    <p id="current-date">Carregando data...</p>
+                </div>
+                <div class="quick-stats">
+                    <div class="stat-pill">
+                        <i class="fa-solid fa-circle-check"></i>
+                        <span id="stat-tasks">0 concluídas</span>
+                    </div>
+                </div>
+            </header>
+
+            <div class="tab-content">
+                
+                <!-- DASHBOARD -->
+                <section id="dashboard" class="tab-pane active">
+                    <div class="cards-grid">
+                        <div class="dash-card">
+                            <div class="card-icon"><i class="fa-solid fa-list-check"></i></div>
+                            <div class="card-info">
+                                <h3>Tarefas Pendentes (Hoje)</h3>
+                                <p id="dash-tasks-count">0</p>
+                            </div>
+                        </div>
+                        <div class="dash-card">
+                            <div class="card-icon"><i class="fa-solid fa-wallet"></i></div>
+                            <div class="card-info">
+                                <h3>Gastos Mensais</h3>
+                                <p id="dash-total-bills">R$ 0,00</p>
+                            </div>
+                        </div>
+                        <div class="dash-card">
+                            <div class="card-icon"><i class="fa-solid fa-calculator"></i></div>
+                            <div class="card-info">
+                                <h3>Gastos do Mês</h3>
+                                <p id="dash-total-month">R$ 0,00</p>
+                            </div>
+                        </div>
+                        <div class="dash-card">
+                            <div class="card-icon"><i class="fa-solid fa-cart-shopping"></i></div>
+                            <div class="card-info">
+                                <h3>Gastos de Hoje</h3>
+                                <p id="dash-total-today">R$ 0,00</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- TAREFAS DO DIA -->
+                <section id="tarefas" class="tab-pane">
+                    <div class="section-header">
+                        <h2><i class="fa-solid fa-list-check"></i> Tarefas (Casa, Trabalho e Faculdade)</h2>
+                    </div>
+
+                    <div class="date-selector-bar">
+                        <label><i class="fa-solid fa-calendar-day"></i> Visualizando o dia:</label>
+                        <input type="date" id="task-filter-date" onchange="onTaskDateChanged()">
+                        <button type="button" class="btn-today" onclick="setTaskDateToday()">Hoje</button>
+                    </div>
+
+                    <form id="task-form" class="item-form">
+                        <input type="text" id="task-title" placeholder="O que você precisa fazer?" required>
+                        <select id="task-category">
+                            <option value="Casa">🏠 Casa</option>
+                            <option value="Trabalho">💼 Trabalho</option>
+                            <option value="Faculdade">🎓 Faculdade</option>
+                        </select>
+                        <select id="task-priority">
+                            <option value="Baixa">Baixa Prioridade</option>
+                            <option value="Média" selected>Média Prioridade</option>
+                            <option value="Alta">Alta Prioridade</option>
+                        </select>
+                        <button type="submit" class="btn-primary"><i class="fa-solid fa-plus"></i> Adicionar</button>
+                    </form>
+
+                    <div class="filters-row">
+                        <button class="filter-chip active" data-filter="all">Todas</button>
+                        <button class="filter-chip" data-filter="Casa">Casa</button>
+                        <button class="filter-chip" data-filter="Trabalho">Trabalho</button>
+                        <button class="filter-chip" data-filter="Faculdade">Faculdade</button>
+                    </div>
+
+                    <div class="list-container" id="tasks-list"></div>
+                </section>
+
+                <!-- ESTUDOS E FACULDADE -->
+                <section id="estudos" class="tab-pane">
+                    <div class="section-header">
+                        <h2><i class="fa-solid fa-book-open"></i> Estudos</h2>
+                    </div>
+                    <div class="action-buttons-row">
+                        <button type="button" class="btn-toggle-form" onclick="toggleStudyForm('study')">
+                            <i class="fa-solid fa-book"></i> Cadastrar Matéria / Tópico
+                        </button>
+                        <button type="button" class="btn-toggle-form" onclick="toggleStudyForm('exam')">
+                            <i class="fa-solid fa-file-pen"></i> Cadastrar Dia de Prova
+                        </button>
+                    </div>
+
+                    <form id="study-form" class="item-form collapsible-form" style="display: none;">
+                        <input type="hidden" id="study-edit-id">
+                        <input type="text" id="study-topic" placeholder="Matéria ou Tópico de Estudo..." required>
+                        <input type="date" id="study-date" required>
+                        <select id="study-status">
+                            <option value="Pendente">📖 Para Estudar</option>
+                            <option value="Em Andamento">✍️ Em Andamento</option>
+                            <option value="Concluído">✅ Concluído</option>
+                        </select>
+                        <button type="submit" id="study-submit-btn" class="btn-primary"><i class="fa-solid fa-plus"></i> Salvar Estudo</button>
+                    </form>
+
+                    <form id="exam-form" class="item-form collapsible-form" style="display: none;">
+                        <input type="text" id="exam-title" placeholder="Nome da Prova / Matéria..." required>
+                        <input type="date" id="exam-date" required>
+                        <button type="submit" class="btn-primary"><i class="fa-solid fa-plus"></i> Agendar Prova</button>
+                    </form>
+
+                    <div style="margin-bottom: 16px;">
+                        <h4 style="color:var(--text-muted); font-size: 0.9rem; margin-bottom: 8px;">Matérias e Tópicos</h4>
+                        <div class="list-container" id="studies-list"></div>
+                    </div>
+
+                    <div style="margin-bottom: 32px;">
+                        <h4 style="color:var(--text-muted); font-size: 0.9rem; margin-bottom: 8px;">Provas Agendadas</h4>
+                        <div class="list-container" id="exams-list"></div>
+                    </div>
+
+                    <div class="section-header" style="margin-top: 32px;">
+                        <h2><i class="fa-solid fa-graduation-cap"></i> Faculdade</h2>
+                    </div>
+                    <div class="action-buttons-row">
+                        <button type="button" class="btn-toggle-form" onclick="toggleStudyForm('college')">
+                            <i class="fa-solid fa-calendar-days"></i> Dias de Aula & Jaleco
+                        </button>
+                    </div>
+
+                    <form id="college-form" class="item-form college-form-grid collapsible-form" style="display: none;">
+                        <select id="college-day" required>
+                            <option value="" disabled selected>Dia da Semana...</option>
+                            <option value="Segunda-feira">Segunda-feira</option>
+                            <option value="Terça-feira">Terça-feira</option>
+                            <option value="Quarta-feira">Quarta-feira</option>
+                            <option value="Quinta-feira">Quinta-feira</option>
+                            <option value="Sexta-feira">Sexta-feira</option>
+                            <option value="Sábado">Sábado</option>
+                        </select>
+                        <input type="text" id="college-subjects" placeholder="Matérias do dia (ex: Anatomia, Fisiologia)" required>
+                        <div class="checkbox-group">
+                            <label>
+                                <input type="checkbox" id="college-jaleco"> 🥼 Levar Jaleco Obrigatório
+                            </label>
+                        </div>
+                        <button type="submit" class="btn-primary"><i class="fa-solid fa-plus"></i> Salvar Dia</button>
+                    </form>
+
+                    <div>
+                        <h4 style="color:var(--text-muted); font-size: 0.9rem; margin-bottom: 8px;">Grade de Aulas & Jaleco</h4>
+                        <div class="list-container" id="college-days-list"></div>
+                    </div>
+                </section>
+
+                <!-- CALENDÁRIO / EVENTOS -->
+                <section id="calendario" class="tab-pane">
+                    <div class="section-header">
+                        <h2><i class="fa-solid fa-calendar-days"></i> Calendário de Eventos & Compromissos</h2>
+                    </div>
+
+                    <form id="event-form" class="item-form event-form-grid">
+                        <input type="text" id="event-title" placeholder="Nome do evento ou compromisso..." required>
+                        <input type="date" id="event-date" required>
+                        <input type="time" id="event-time">
+                        <button type="submit" class="btn-primary"><i class="fa-solid fa-plus"></i> Adicionar Evento</button>
+                    </form>
+
+                    <div class="finance-summary-box">
+                        <span>Próximos Eventos Cadastrados:</span>
+                        <h2 id="total-events-count">0</h2>
+                    </div>
+
+                    <div class="list-container" id="events-list"></div>
+                </section>
+
+                <!-- GASTOS MENSAIS -->
+                <section id="financas" class="tab-pane">
+                    <div class="section-header">
+                        <h2><i class="fa-solid fa-wallet"></i> Gastos Mensais</h2>
+                    </div>
+
+                    <form id="bill-form" class="item-form finance-form-grid">
+                        <select id="bill-category" onchange="handleCategoryChange()">
+                            <option value="Streaming">🎬 Streaming</option>
+                            <option value="Saude">🏥 Saúde</option>
+                            <option value="Contas">💡 Contas (Luz, Água...)</option>
+                            <option value="Boletos">📄 Boleto</option>
+                            <option value="Parcelas">💳 Parcelas</option>
+                        </select>
+
+                        <div id="bill-name-container">
+                            <input type="text" id="bill-name-input" placeholder="Nome..." style="display: none;" required>
+                            <select id="bill-name-select" required>
+                                <option value="Netflix">Netflix</option>
+                                <option value="Spotify">Spotify</option>
+                                <option value="Amazon Prime">Amazon Prime</option>
+                                <option value="Disney+">Disney+</option>
+                                <option value="HBO Max">HBO Max</option>
+                                <option value="YouTube Premium">YouTube Premium</option>
+                                <option value="Globoplay">Globoplay</option>
+                                <option value="Crunchyroll">Crunchyroll</option>
+                                <option value="Apple TV+">Apple TV+</option>
+                            </select>
+                        </div>
+
+                        <input type="number" step="0.01" id="bill-value" placeholder="Valor (R$)" required>
+                        <input type="number" min="1" max="31" id="bill-duedate" placeholder="Data de Cobrança (Dia 1-31)" required>
+                        
+                        <select id="bill-card-id">
+                            <option value="">Sem cartão vinculado (Dinheiro/Pix)</option>
+                        </select>
+
+                        <button type="submit" class="btn-primary"><i class="fa-solid fa-plus"></i> Adicionar</button>
+                    </form>
+
+                    <div class="finance-summary-box">
+                        <span>Total Gastos Mensais (Fixos):</span>
+                        <h2 id="total-bills-value">R$ 0,00</h2>
+                    </div>
+
+                    <div class="list-container" id="bills-list"></div>
+                </section>
+
+                <!-- CARTÕES DE CRÉDITO -->
+                <section id="cartoes" class="tab-pane">
+                    <div class="section-header">
+                        <h2><i class="fa-solid fa-credit-card"></i> Cartões de Crédito</h2>
+                    </div>
+
+                    <div class="action-buttons-row">
+                        <button type="button" class="btn-toggle-form" onclick="toggleCardForm()">
+                            <i class="fa-solid fa-plus"></i> Cadastrar Cartão
+                        </button>
+                    </div>
+
+                    <form id="card-form" class="item-form card-form-grid collapsible-form" style="display: none;">
+                        <input type="hidden" id="card-edit-id">
+                        <input type="text" id="card-name" placeholder="Nome do Cartão (ex: Nubank)..." required>
+                        <input type="text" id="card-digits" placeholder="Últimos 4 dígitos (ex: 4892)" maxlength="4" required>
+                        <input type="number" min="1" max="31" id="card-closing" placeholder="Dia Fechamento (ex: 5)" required>
+                        <input type="number" min="1" max="31" id="card-due" placeholder="Dia Vencimento (ex: 12)" required>
+                        <button type="submit" id="card-submit-btn" class="btn-primary"><i class="fa-solid fa-plus"></i> Novo Cartão</button>
+                    </form>
+
+                    <div class="finance-summary-box" style="margin-top: 24px;">
+                        <span>Total Faturas / Gastos nos Cartões:</span>
+                        <h2 id="total-cards-value">R$ 0,00</h2>
+                    </div>
+
+                    <div class="list-container" id="cards-list" style="margin-top: 20px;"></div>
+                </section>
+
+                <!-- GASTOS ISOLADOS -->
+                <section id="gastos-isolados" class="tab-pane">
+                    <div class="section-header">
+                        <h2><i class="fa-solid fa-cart-shopping"></i> Gastos Isolados (Pix, Dinheiro ou Cartão)</h2>
+                    </div>
+
+                    <div class="date-selector-bar">
+                        <label><i class="fa-solid fa-calendar-day"></i> Visualizando o dia:</label>
+                        <input type="date" id="purchase-filter-date" onchange="onPurchaseDateChanged()">
+                        <button type="button" class="btn-today" onclick="setPurchaseDateToday()">Hoje</button>
+                    </div>
+
+                    <form id="purchase-form" class="item-form purchase-form-grid">
+                        <select id="purchase-payment-method" required>
+                            <option value="pix" selected>⚡ Pix</option>
+                            <option value="dinheiro">💵 Dinheiro</option>
+                            <optgroup label="Cartões de Crédito" id="purchase-cards-group">
+                                <!-- Preenchido via JS -->
+                            </optgroup>
+                        </select>
+                        <input type="text" id="purchase-title" placeholder="O que comprou? (ex: Lanche, Tênis)" required>
+                        <select id="purchase-category" required>
+                            <option value="" disabled selected>Categoria do Gasto...</option>
+                            <option value="Alimentação">🍔 Alimentação</option>
+                            <option value="Lazer">🎉 Lazer</option>
+                            <option value="Eletrônicos">💻 Eletrônicos</option>
+                            <option value="Vestuário">👕 Vestuário</option>
+                            <option value="Transporte">🚗 Transporte</option>
+                            <option value="Saúde">🏥 Saúde</option>
+                            <option value="Outros">📦 Outros</option>
+                        </select>
+                        <input type="number" step="0.01" id="purchase-value" placeholder="Valor (R$)" required>
+                        <input type="date" id="purchase-date" required>
+                        <button type="submit" class="btn-primary"><i class="fa-solid fa-plus"></i> Registrar</button>
+                    </form>
+
+                    <div class="finance-summary-box">
+                        <span>Total Gastos Isolados (Neste Dia):</span>
+                        <h2 id="total-isolated-value">R$ 0,00</h2>
+                    </div>
+
+                    <div class="list-container" id="isolated-purchases-list"></div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+<script type="module" src="script.js"></script>
+
+    <!-- Integração Firebase -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-analytics.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC_SoKuf074CM_rSlps7mkKNSQprdohGtA",
+            authDomain: "organiza-now.firebaseapp.com",
+            projectId: "organiza-now",
+            storageBucket: "organiza-now.firebasestorage.app",
+            messagingSenderId: "464056147054",
+            appId: "1:464056147054:web:237e8b4272706b06d05a7f",
+            measurementId: "G-CM8C9Y99DN"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+    </script>
+</body>
+</html>
