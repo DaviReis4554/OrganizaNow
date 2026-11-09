@@ -1099,32 +1099,179 @@ window.deleteCard = function(id) {
     renderAll();
 }
 
+// ===== VISÃO GERAL: escolher o dia e ver os dias anteriores =====
+const WEEKDAYS = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
+let selectedDashDate = localDateStr(new Date());
+let dashHistoryDays = 7;
+
+// Data local (YYYY-MM-DD). toISOString usa UTC e, à noite no Brasil, já mostra o dia seguinte.
+function localDateStr(d) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+}
+
+function parseLocalDate(str) {
+    const [y, m, d] = str.split('-').map(Number);
+    return new Date(y, m - 1, d);
+}
+
+function formatBR(str) {
+    return str.split('-').reverse().join('/');
+}
+
+function money(v) {
+    return `R$ ${(Number(v) || 0).toFixed(2)}`;
+}
+
+function esc(t) {
+    return String(t ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+function tasksOfDay(dateStr) {
+    const todayStr = localDateStr(new Date());
+    return state.tasks.filter(t => (!t.date && dateStr === todayStr) || t.date === dateStr);
+}
+
+function purchasesOfDay(dateStr) {
+    return state.purchases.filter(p => p.date === dateStr && !p.isBill);
+}
+
+window.dashSelectDay = function(dateStr) {
+    if (!dateStr) return;
+    selectedDashDate = dateStr;
+    updateDashboard();
+}
+
+window.dashShiftDay = function(delta) {
+    const d = parseLocalDate(selectedDashDate);
+    d.setDate(d.getDate() + delta);
+    window.dashSelectDay(localDateStr(d));
+}
+
+window.dashSetToday = function() {
+    window.dashSelectDay(localDateStr(new Date()));
+}
+
+window.dashMoreHistory = function() {
+    dashHistoryDays += 7;
+    updateDashboard();
+}
+
 function updateDashboard() {
-    const today = new Date();
-    const todayStr = today.toISOString().split('T')[0];
-    const currentDayOfMonth = today.getDate();
-    const currentMonthPrefix = todayStr.substring(0, 7);
+    const todayStr = localDateStr(new Date());
+    const sel = selectedDashDate;
+    const isToday = sel === todayStr;
+    const selDate = parseLocalDate(sel);
+    const dayOfMonth = selDate.getDate();
+    const monthPrefix = sel.substring(0, 7);
+    const when = isToday ? 'Hoje' : formatBR(sel);
 
-    const todayTasks = state.tasks.filter(t => (!t.date && todayStr === new Date().toISOString().split('T')[0]) || t.date === todayStr);
-    const pendingTasks = todayTasks.filter(t => !t.completed).length;
+    document.getElementById('dash-date').value = sel;
 
+    // Topo: sempre mostra o dia de hoje
+    const todayTasks = tasksOfDay(todayStr);
     document.getElementById('stat-tasks').textContent = `${todayTasks.filter(t => t.completed).length} concluídas hoje`;
-    document.getElementById('dash-tasks-count').textContent = pendingTasks;
+
+    // Cartões do dia escolhido
+    const dayTasks = tasksOfDay(sel);
+    document.getElementById('dash-tasks-label').textContent = `Tarefas Pendentes (${when})`;
+    document.getElementById('dash-tasks-count').textContent = dayTasks.filter(t => !t.completed).length;
 
     const totalMonthlyBills = state.bills.reduce((acc, b) => acc + b.value, 0);
-    document.getElementById('dash-total-bills').textContent = `R$ ${totalMonthlyBills.toFixed(2)}`;
+    document.getElementById('dash-total-bills').textContent = money(totalMonthlyBills);
 
-    const todayPurchases = state.purchases.filter(p => p.date === todayStr && !p.isBill);
-    const totalToday = todayPurchases.reduce((acc, p) => acc + p.value, 0);
-    document.getElementById('dash-total-today').textContent = `R$ ${totalToday.toFixed(2)}`;
+    const dayPurchases = purchasesOfDay(sel);
+    document.getElementById('dash-today-label').textContent = `Gastos de ${when}`;
+    document.getElementById('dash-total-today').textContent = money(dayPurchases.reduce((acc, p) => acc + p.value, 0));
 
-    const billsUntilToday = state.bills
-        .filter(b => parseInt(b.duedate) <= currentDayOfMonth)
+    const billsUntilDay = state.bills
+        .filter(b => parseInt(b.duedate) <= dayOfMonth)
         .reduce((acc, b) => acc + b.value, 0);
+    const monthPurchases = state.purchases
+        .filter(p => p.date && p.date.startsWith(monthPrefix) && p.date <= sel && !p.isBill)
+        .reduce((acc, p) => acc + p.value, 0);
+    document.getElementById('dash-month-label').textContent = isToday ? 'Gastos do Mês' : `Gastos do Mês (até ${when})`;
+    document.getElementById('dash-total-month').textContent = money(billsUntilDay + monthPurchases);
 
-    const monthPurchases = state.purchases.filter(p => p.date && p.date.startsWith(currentMonthPrefix) && !p.isBill);
-    const totalMonthPurchases = monthPurchases.reduce((acc, p) => acc + p.value, 0);
+    renderDayDetail(sel, dayTasks, dayPurchases);
+    renderDashHistory(sel);
+}
 
-    const grandTotalMonth = billsUntilToday + totalMonthPurchases;
-    document.getElementById('dash-total-month').textContent = `R$ ${grandTotalMonth.toFixed(2)}`;
+function renderDayDetail(sel, dayTasks, dayPurchases) {
+    const todayStr = localDateStr(new Date());
+    const selDate = parseLocalDate(sel);
+    const weekday = WEEKDAYS[selDate.getDay()];
+    document.getElementById('dash-day-title').textContent =
+        `Resumo de ${weekday}, ${formatBR(sel)}${sel === todayStr ? ' (hoje)' : ''}`;
+
+    const events = state.events.filter(e => e.date === sel);
+    const exams = state.exams.filter(e => e.date === sel);
+    const studies = state.studies.filter(e => e.date === sel);
+    const classes = state.collegeDays.filter(c => c.day === weekday);
+    const billsDue = state.bills.filter(b => parseInt(b.duedate) === selDate.getDate());
+
+    const blocks = [];
+    const block = (title, rows) => {
+        if (rows.length) {
+            blocks.push(`<div class="day-detail-card"><h4>${title}</h4><ul class="styled-list">${rows.join('')}</ul></div>`);
+        }
+    };
+
+    block('✅ Tarefas', dayTasks.map(t =>
+        `<li><span>${t.completed ? '✔️' : '⬜'} ${esc(t.title)}</span><span>${esc(t.category || '')}</span></li>`));
+    block('🛒 Gastos do dia', dayPurchases.map(p =>
+        `<li><span>${esc(p.title)}</span><span>${money(p.value)}</span></li>`));
+    block('📅 Compromissos', events.map(e =>
+        `<li><span>${esc(e.title)}</span><span>${esc(e.time || '')}</span></li>`));
+    block('🚨 Provas', exams.map(e => `<li><span>${esc(e.title)}</span><span></span></li>`));
+    block('📚 Estudos', studies.map(e =>
+        `<li><span>${esc(e.topic)}</span><span>${esc(e.status || '')}</span></li>`));
+    block('🎓 Aulas', classes.map(c =>
+        `<li><span>${esc(c.subjects)}</span><span>${c.jaleco ? '🥼 Jaleco' : ''}</span></li>`));
+    block('💳 Contas que vencem neste dia', billsDue.map(b =>
+        `<li><span>${esc(b.name)}</span><span>${money(b.value)}</span></li>`));
+
+    document.getElementById('dash-day-detail').innerHTML = blocks.length
+        ? blocks.join('')
+        : `<p style="color:var(--text-muted); padding: 8px 0;">Nada registrado neste dia.</p>`;
+}
+
+function renderDashHistory(sel) {
+    const container = document.getElementById('dash-history');
+    container.innerHTML = '';
+
+    const base = parseLocalDate(sel);
+    let totalDone = 0, totalTasks = 0, totalSpent = 0;
+
+    for (let i = 0; i < dashHistoryDays; i++) {
+        const d = new Date(base.getFullYear(), base.getMonth(), base.getDate() - i);
+        const ds = localDateStr(d);
+        const tasks = tasksOfDay(ds);
+        const done = tasks.filter(t => t.completed).length;
+        const spent = purchasesOfDay(ds).reduce((acc, p) => acc + p.value, 0);
+
+        totalDone += done;
+        totalTasks += tasks.length;
+        totalSpent += spent;
+
+        const row = document.createElement('div');
+        row.className = 'list-item history-row' + (ds === sel ? ' selected' : '');
+        row.onclick = () => window.dashSelectDay(ds);
+        row.innerHTML = `
+            <div class="item-info">
+                <h4>${WEEKDAYS[d.getDay()]} <span style="color:var(--text-muted); font-weight:400;">${formatBR(ds)}</span></h4>
+            </div>
+            <div class="badges history-stats">
+                <span class="badge">✅ ${done}/${tasks.length} tarefas</span>
+                <span class="badge">💸 ${money(spent)}</span>
+            </div>`;
+        container.appendChild(row);
+    }
+
+    const summary = document.createElement('div');
+    summary.className = 'finance-summary-box';
+    summary.innerHTML = `<span>Últimos ${dashHistoryDays} dias: ${totalDone}/${totalTasks} tarefas concluídas</span><h2>${money(totalSpent)}</h2>`;
+    container.prepend(summary);
 }

@@ -746,3 +746,184 @@ body {
         gap: 12px;
     }
 }
+
+/* ===== Ajustes extras para celular ===== */
+@media (max-width: 768px) {
+    html, body {
+        overflow-x: hidden;
+    }
+
+    /* Botões de tema e sair: antes ficavam escondidos no celular. Agora ficam fixos no topo, à direita */
+    .sidebar-footer {
+        display: flex;
+        flex-direction: row;
+        position: fixed;
+        top: max(10px, env(safe-area-inset-top));
+        right: 12px;
+        width: auto;
+        padding: 0;
+        border-top: none;
+        gap: 8px;
+        z-index: 1100;
+    }
+
+    .theme-btn, .logout-btn {
+        width: 42px;
+        height: 42px;
+        padding: 0;
+        border-radius: 12px;
+        font-size: 1rem;
+        box-shadow: var(--shadow);
+    }
+
+    .theme-btn span, .logout-btn span {
+        display: none;
+    }
+
+    /* Espaço no topo para os botões fixos */
+    .main-content {
+        padding-top: 66px;
+        padding-bottom: calc(96px + env(safe-area-inset-bottom));
+    }
+
+    /* Barra inferior: rola de lado se não couber tudo */
+    .sidebar {
+        height: calc(70px + env(safe-area-inset-bottom));
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    .nav-menu {
+        overflow-x: auto;
+        justify-content: flex-start;
+        scrollbar-width: none;
+    }
+
+    .nav-menu::-webkit-scrollbar {
+        display: none;
+    }
+
+    .nav-btn {
+        flex: 1 0 74px;
+        justify-content: center;
+        line-height: 1.15;
+    }
+
+    .nav-btn.active {
+        background: var(--primary-light);
+    }
+
+    /* Topo e textos */
+    .welcome-text h1 {
+        font-size: 1.25rem;
+    }
+
+    .topbar {
+        margin-bottom: 20px;
+    }
+
+    .section-header h2 {
+        font-size: 1.15rem;
+    }
+
+    /* Formulários: 16px evita o zoom automático do iPhone */
+    .item-form input, .item-form select,
+    .input-group input,
+    .date-selector-bar input[type="date"] {
+        font-size: 16px;
+        width: 100%;
+        min-width: 0;
+    }
+
+    .btn-primary, .btn-today {
+        min-height: 44px;
+    }
+
+    .auth-card {
+        padding: 24px 18px;
+    }
+
+    /* Listas e cartões */
+    .date-selector-bar {
+        flex-wrap: wrap;
+    }
+
+    .list-item {
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: 14px;
+    }
+
+    .item-left {
+        min-width: 0;
+        flex: 1 1 200px;
+        gap: 12px;
+    }
+
+    .item-info {
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
+
+    .btn-delete, .btn-edit {
+        min-width: 40px;
+        min-height: 40px;
+    }
+
+    .finance-summary-box {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+    }
+
+    .dash-card {
+        padding: 16px;
+    }
+
+    .card-info p {
+        font-size: 1.2rem;
+    }
+}
+
+
+/* ===== Visão Geral: resumo do dia e histórico ===== */
+.day-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+}
+
+.day-detail-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 16px 20px;
+    box-shadow: var(--shadow);
+}
+
+.day-detail-card h4 {
+    font-size: 0.95rem;
+    margin-bottom: 8px;
+    color: var(--text-main);
+}
+
+.day-detail-card .styled-list li {
+    gap: 12px;
+}
+
+.history-row {
+    cursor: pointer;
+}
+
+.history-row:hover {
+    border-color: var(--primary);
+}
+
+.history-row.selected {
+    border-color: var(--primary);
+    background: var(--primary-light);
+}
+
+.history-stats {
+    font-size: 0.8rem;
+}

@@ -114,11 +114,19 @@
                 
                 <!-- DASHBOARD -->
                 <section id="dashboard" class="tab-pane active">
+                    <div class="date-selector-bar">
+                        <label><i class="fa-solid fa-calendar-day"></i> Visualizando o dia:</label>
+                        <button type="button" class="btn-today" onclick="dashShiftDay(-1)" title="Dia anterior"><i class="fa-solid fa-chevron-left"></i></button>
+                        <input type="date" id="dash-date" onchange="dashSelectDay(this.value)">
+                        <button type="button" class="btn-today" onclick="dashShiftDay(1)" title="Próximo dia"><i class="fa-solid fa-chevron-right"></i></button>
+                        <button type="button" class="btn-today" onclick="dashSetToday()">Hoje</button>
+                    </div>
+
                     <div class="cards-grid">
                         <div class="dash-card">
                             <div class="card-icon"><i class="fa-solid fa-list-check"></i></div>
                             <div class="card-info">
-                                <h3>Tarefas Pendentes (Hoje)</h3>
+                                <h3 id="dash-tasks-label">Tarefas Pendentes (Hoje)</h3>
                                 <p id="dash-tasks-count">0</p>
                             </div>
                         </div>
@@ -132,17 +140,30 @@
                         <div class="dash-card">
                             <div class="card-icon"><i class="fa-solid fa-calculator"></i></div>
                             <div class="card-info">
-                                <h3>Gastos do Mês</h3>
+                                <h3 id="dash-month-label">Gastos do Mês</h3>
                                 <p id="dash-total-month">R$ 0,00</p>
                             </div>
                         </div>
                         <div class="dash-card">
                             <div class="card-icon"><i class="fa-solid fa-cart-shopping"></i></div>
                             <div class="card-info">
-                                <h3>Gastos de Hoje</h3>
+                                <h3 id="dash-today-label">Gastos de Hoje</h3>
                                 <p id="dash-total-today">R$ 0,00</p>
                             </div>
                         </div>
+                    </div>
+
+                    <div class="section-header">
+                        <h3 id="dash-day-title">Resumo do dia</h3>
+                    </div>
+                    <div id="dash-day-detail" class="day-detail-grid"></div>
+
+                    <div class="section-header">
+                        <h3><i class="fa-solid fa-clock-rotate-left"></i> Dias anteriores</h3>
+                    </div>
+                    <div id="dash-history" class="list-container"></div>
+                    <div class="action-buttons-row" style="margin-top:16px;">
+                        <button type="button" class="btn-toggle-form" onclick="dashMoreHistory()"><i class="fa-solid fa-plus"></i> Ver mais 7 dias</button>
                     </div>
                 </section>
 
