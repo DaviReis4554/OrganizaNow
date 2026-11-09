@@ -41,7 +41,10 @@ function pushToCloud() {
     setDoc(doc(db, 'users', currentUser.uid), {
         data: JSON.stringify(state),
         updatedAt: Date.now()
-    }).catch(err => console.error('Erro ao salvar na nuvem:', err));
+    }).catch(err => {
+        console.error('Erro ao salvar na nuvem:', err);
+        alert('Não consegui salvar na nuvem (' + err.code + '). Verifique as Regras do Firestore.');
+    });
 }
 
 function startCloudSync() {
@@ -53,18 +56,40 @@ function startCloudSync() {
 
         if (snap.exists() && snap.data().data) {
             const remote = normalizeState(JSON.parse(snap.data().data));
-            if (JSON.stringify(remote) !== JSON.stringify(state)) {
+            const syncedKey = `organizananow_synced_${currentUser.uid}`;
+            if (!localStorage.getItem(syncedKey)) {
+                // Primeira vez que este aparelho sincroniza: junta o que ele tem com a nuvem, sem perder nada
+                state = mergeStates(state, remote);
+                localStorage.setItem(syncedKey, '1');
+                localStorage.setItem(cacheKey(), JSON.stringify(state));
+                renderAll();
+                pushToCloud();
+            } else if (JSON.stringify(remote) !== JSON.stringify(state)) {
                 state = remote;
                 localStorage.setItem(cacheKey(), JSON.stringify(state));
                 renderAll();
             }
         } else if (!snap.metadata.fromCache) {
             // Primeiro acesso com a nuvem vazia: sobe o que já existe neste aparelho
+            localStorage.setItem(`organizananow_synced_${currentUser.uid}`, '1');
             pushToCloud();
         }
     }, (err) => {
         console.error('Erro ao sincronizar com a nuvem:', err);
+        alert('Não consegui sincronizar com o Firebase (' + err.code + '). Verifique as Regras do Firestore.');
     });
+}
+
+// Junta duas listas pelo id (o item da nuvem vence se o id for igual)
+function mergeStates(local, remote) {
+    const out = emptyState();
+    Object.keys(out).forEach(key => {
+        const map = new Map();
+        (local[key] || []).forEach(i => map.set(i.id, i));
+        (remote[key] || []).forEach(i => map.set(i.id, i));
+        out[key] = Array.from(map.values());
+    });
+    return out;
 }
 
 function stopCloudSync() {
