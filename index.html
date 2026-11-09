@@ -2,9 +2,9 @@
 <html lang="pt-BR" data-theme="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>OrganizaNow | Seu Painel de Organização</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=4">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
@@ -56,6 +56,15 @@
 
     <!-- ================= APLICATIVO PRINCIPAL ================= -->
     <div id="app-screen" class="app-container" style="display: none;">
+        <!-- Barra superior (só aparece no celular) -->
+        <header class="mobile-header">
+            <div class="m-logo"><i class="fa-solid fa-layer-group"></i> Organiza<span>Now</span></div>
+            <div class="m-actions">
+                <button type="button" onclick="document.getElementById('theme-toggle').click()" title="Alternar tema" aria-label="Alternar tema"><i class="fa-solid fa-circle-half-stroke"></i></button>
+                <button type="button" class="m-logout" onclick="logout()" title="Sair da conta" aria-label="Sair da conta"><i class="fa-solid fa-right-from-bracket"></i></button>
+            </div>
+        </header>
+
         <aside class="sidebar">
             <div class="logo-area">
                 <i class="fa-solid fa-layer-group"></i>
@@ -426,7 +435,7 @@
         </main>
     </div>
 
-<script type="module" src="script.js"></script>
+<script type="module" src="script.js?v=4"></script>
 
     <!-- Integração Firebase -->
     <script type="module">

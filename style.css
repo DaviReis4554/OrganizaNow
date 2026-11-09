@@ -748,42 +748,77 @@ body {
 }
 
 /* ===== Ajustes extras para celular ===== */
+
+/* Barra superior do celular (logo + tema + sair). Escondida no computador. */
+.mobile-header {
+    display: none;
+}
+
+input[type="date"] {
+    color-scheme: dark;
+}
+
+[data-theme="light"] input[type="date"] {
+    color-scheme: light;
+}
+
 @media (max-width: 768px) {
     html, body {
         overflow-x: hidden;
     }
 
-    /* Botões de tema e sair: antes ficavam escondidos no celular. Agora ficam fixos no topo, à direita */
-    .sidebar-footer {
+    .mobile-header {
         display: flex;
-        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
         position: fixed;
-        top: max(10px, env(safe-area-inset-top));
-        right: 12px;
-        width: auto;
-        padding: 0;
-        border-top: none;
-        gap: 8px;
-        z-index: 1100;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: calc(56px + env(safe-area-inset-top));
+        padding: env(safe-area-inset-top) 14px 0;
+        background: var(--bg-sidebar);
+        border-bottom: 1px solid var(--border-color);
+        z-index: 1000;
     }
 
-    .theme-btn, .logout-btn {
+    .mobile-header .m-logo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--primary);
+        font-size: 1.15rem;
+        font-weight: 700;
+    }
+
+    .mobile-header .m-logo span {
+        color: var(--text-main);
+    }
+
+    .mobile-header .m-actions {
+        display: flex;
+        gap: 8px;
+    }
+
+    .mobile-header button {
         width: 42px;
         height: 42px;
-        padding: 0;
         border-radius: 12px;
-        font-size: 1rem;
-        box-shadow: var(--shadow);
+        border: 1px solid var(--border-color);
+        background: var(--primary-light);
+        color: var(--primary);
+        font-size: 1.05rem;
+        cursor: pointer;
     }
 
-    .theme-btn span, .logout-btn span {
-        display: none;
+    .mobile-header button.m-logout {
+        background: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+        border-color: rgba(239, 68, 68, 0.25);
     }
 
-    /* Espaço no topo para os botões fixos */
     .main-content {
-        padding-top: 66px;
-        padding-bottom: calc(96px + env(safe-area-inset-bottom));
+        padding: calc(56px + env(safe-area-inset-top) + 16px) 14px calc(96px + env(safe-area-inset-bottom));
     }
 
     /* Barra inferior: rola de lado se não couber tudo */
@@ -814,11 +849,13 @@ body {
 
     /* Topo e textos */
     .welcome-text h1 {
-        font-size: 1.25rem;
+        font-size: 1.2rem;
     }
 
     .topbar {
-        margin-bottom: 20px;
+        margin-bottom: 16px;
+        padding: 14px 16px;
+        gap: 8px;
     }
 
     .section-header h2 {
@@ -830,8 +867,11 @@ body {
     .input-group input,
     .date-selector-bar input[type="date"] {
         font-size: 16px;
-        width: 100%;
         min-width: 0;
+    }
+
+    .item-form input, .item-form select, .input-group input {
+        width: 100%;
     }
 
     .btn-primary, .btn-today {
@@ -842,11 +882,60 @@ body {
         padding: 24px 18px;
     }
 
-    /* Listas e cartões */
+    /* Seletor de dia */
     .date-selector-bar {
         flex-wrap: wrap;
+        padding: 12px;
     }
 
+    .date-selector-bar input[type="date"] {
+        flex: 1 1 140px;
+        min-height: 44px;
+    }
+
+    #dashboard .date-selector-bar {
+        display: grid;
+        grid-template-columns: 48px 1fr 48px auto;
+        gap: 8px;
+    }
+
+    #dashboard .date-selector-bar label {
+        grid-column: 1 / -1;
+    }
+
+    #dashboard .date-selector-bar .btn-today {
+        padding: 8px;
+    }
+
+    /* Cartões da visão geral: 2 por linha, bem mais compactos */
+    .cards-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    .dash-card {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 14px;
+    }
+
+    .card-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1.05rem;
+    }
+
+    .card-info h3 {
+        font-size: 0.78rem;
+    }
+
+    .card-info p {
+        font-size: 1.15rem;
+    }
+
+    /* Listas */
     .list-item {
         flex-wrap: wrap;
         gap: 10px;
@@ -874,16 +963,7 @@ body {
         align-items: flex-start;
         gap: 6px;
     }
-
-    .dash-card {
-        padding: 16px;
-    }
-
-    .card-info p {
-        font-size: 1.2rem;
-    }
 }
-
 
 /* ===== Visão Geral: resumo do dia e histórico ===== */
 .day-detail-grid {
